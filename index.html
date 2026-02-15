@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Galaxia de Amor</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+html,body{
+    margin:0;
+    padding:0;
+    overflow:hidden;
+    background:black;
+    font-family:Arial, sans-serif;
+}
+
+#mensaje{
+    position:absolute;
+    top:20px;
+    width:100%;
+    text-align:center;
+    color:white;
+    font-size:26px;
+    letter-spacing:2px;
+    text-shadow:0 0 15px #ff00ff, 0 0 25px #00ffff;
+    z-index:10;
+}
+</style>
+</head>
+
+<body>
+
+<div id="mensaje">Te Amo Muchote Mi Ojitos Brillantes 💖</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/FontLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/geometries/TextGeometry.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/postprocessing/UnrealBloomPass.js"></script>
+
+<script>
+/* ---------------- ESCENA ---------------- */
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x000000, 200, 1500);
+
+const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 3000);
+camera.position.set(0,40,180);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio*1.5);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.outputEncoding = THREE.sRGBEncoding;
+document.body.appendChild(renderer.domElement);
+
+/* ---------------- CONTROLES (DEDO / MOUSE) ---------------- */
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.enablePan = false;
+controls.rotateSpeed = 0.4;
+controls.minDistance = 80;
+controls.maxDistance = 400;
+
+/* ---------------- POSTPROCESADO (GLOW PRO) ---------------- */
+
+const composer = new THREE.EffectComposer(renderer);
+composer.addPass(new THREE.RenderPass(scene,camera));
+
+const bloomPass = new THREE.UnrealBloomPass(
+    new THREE.Vector2(innerWidth, innerHeight),
+    1.5,
+    0.6,
+    0.1
+);
+composer.addPass(bloomPass);
+
+/* ---------------- LUCES ---------------- */
+
+scene.add(new THREE.AmbientLight(0x444444,1.5));
+
+const coreLight = new THREE.PointLight(0xff00ff, 4, 800);
+coreLight.position.set(0,0,0);
+scene.add(coreLight);
+
+const blueLight = new THREE.PointLight(0x00ffff, 3, 800);
+blueLight.position.set(80,40,40);
+scene.add(blueLight);
+
+/* ---------------- NÚCLEO GALÁCTICO ---------------- */
+
+const coreGeo = new THREE.SphereGeometry(12, 128, 128);
+const coreMat = new THREE.MeshStandardMaterial({
+    color:0xffffff,
+    emissive:0xff00ff,
+    emissiveIntensity:2,
+    metalness:0.8,
+    roughness:0.1
+});
+const core = new THREE.Mesh(coreGeo, coreMat);
+scene.add(core);
+
+/* ---------------- FRASES ---------------- */
+
+const frases = [
+"Mi Amor","Mi Vida","Mi Cielo","Eres Mi Mundo","Mi Princesa","Mi Corazón",
+"Mi Tesoro","Mi Universo","Te Amo Mucho","Mi Estrellita","Mi Bonita",
+"Mi Infinito","Mi Sueño","Mi Luz","Mi Destino","Mi Felicidad",
+"Mi Paz","Mi Todo Bonito","Mi Reina","Mi Casualidad Favorita",
+"Mi Locura","Mi Angelito","Mi Eternidad"
+];
+
+/* ---------------- GALAXIA ---------------- */
+
+const galaxyGroup = new THREE.Group();
+scene.add(galaxyGroup);
+
+const fontLoader = new THREE.FontLoader();
+
+fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',(font)=>{
+
+    frases.forEach((txt,i)=>{
+
+        const textGeo = new THREE.TextGeometry(txt,{
+            font:font,
+            size:3,
+            height:1,
+            curveSegments:12
+        });
+
+        textGeo.center();
+
+        const textMat = new THREE.MeshStandardMaterial({
+            color:0xffffff,
+            emissive:new THREE.Color(`hsl(${i*20},100%,60%)`),
+            emissiveIntensity:1.2,
+            metalness:0.7,
+            roughness:0.2
+        });
+
+        const textMesh = new THREE.Mesh(textGeo,textMat);
+
+        const angle = (i/frases.length)*Math.PI*2;
+        const radius = 90 + Math.random()*40;
+        const height = (Math.random()-0.5)*20;
+
+        textMesh.position.set(
+            Math.cos(angle)*radius,
+            height,
+            Math.sin(angle)*radius
+        );
+
+        textMesh.lookAt(0,0,0); // evita texto al revés
+
+        galaxyGroup.add(textMesh);
+    });
+});
+
+/* ---------------- ESTRELLAS PREMIUM ---------------- */
+
+const starGeo = new THREE.BufferGeometry();
+const starCount = 12000;
+const starPos = [];
+
+for(let i=0;i<starCount;i++){
+    starPos.push((Math.random()-0.5)*3000);
+    starPos.push((Math.random()-0.5)*3000);
+    starPos.push((Math.random()-0.5)*3000);
+}
+
+starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos,3));
+
+const starMat = new THREE.PointsMaterial({
+    color:0xffffff,
+    size:1.2,
+    transparent:true,
+    opacity:0.8
+});
+
+const stars = new THREE.Points(starGeo,starMat);
+scene.add(stars);
+
+/* ---------------- ANIMACIÓN ---------------- */
+
+let t=0;
+
+function animate(){
+    requestAnimationFrame(animate);
+
+    t+=0.001;
+
+    galaxyGroup.rotation.y += 0.0008;
+    galaxyGroup.rotation.x = Math.sin(t)*0.05;
+
+    core.rotation.y += 0.002;
+    const pulse = 1 + Math.sin(Date.now()*0.003)*0.08;
+    core.scale.set(pulse,pulse,pulse);
+
+    coreMat.emissiveIntensity = 1.5 + Math.sin(Date.now()*0.002)*0.5;
+
+    controls.update();
+    composer.render();
+}
+
+animate();
+
+/* ---------------- RESPONSIVE ---------------- */
+
+addEventListener("resize",()=>{
+    camera.aspect = innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight);
+    composer.setSize(innerWidth,innerHeight);
+});
+</script>
+
+</body>
+</html>
